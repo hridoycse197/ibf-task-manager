@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:ibf_task_manager/core/storage/isar_service.dart';
 import 'package:ibf_task_manager/routes/pages.dart';
-import 'package:ibf_task_manager/views/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  // Initialize Isar
+  await IsarService.instance.open();
   runApp(const TaskManagerApp());
 }
 
