@@ -39,6 +39,9 @@ class TaskController extends GetxController {
   final isLoading = false.obs;
   final error = ''.obs;
 
+  // Selected task for details view
+  final Rx<TaskEntity?> selectedTask = Rx<TaskEntity?>(null);
+
   // Filter state
   final Rx<TaskFilter> currentFilter = TaskFilter.all.obs;
 
@@ -253,6 +256,17 @@ class TaskController extends GetxController {
   int get totalTasks => tasks.length;
   int get activeTasks => tasks.where((t) => !t.isCompleted).length;
   int get completedTasks => tasks.where((t) => t.isCompleted).length;
+
+  /// Navigate to task details screen with selected task
+  void navigateToTaskDetails(TaskEntity task) {
+    selectedTask.value = task;
+    Get.toNamed('/task-details');
+  }
+
+  /// Clear selected task (call when navigating back from details)
+  void clearSelectedTask() {
+    selectedTask.value = null;
+  }
 
   /// Convert Failure to user-friendly error message
   String _getErrorMessage(Failure failure) {

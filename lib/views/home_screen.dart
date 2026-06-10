@@ -1,81 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../routes/pages.dart';
+import 'package:shimmer/shimmer.dart';
+import '../controllers/task_controller.dart';
+import '../domain/entities/task.dart';
 import 'widgets/add_task_dialog.dart';
 
-/// Simple static task model for display
-class _StaticTask {
-  final String title;
-  final String description;
-  final bool isCompleted;
-
-  const _StaticTask({
-    required this.title,
-    required this.description,
-    required this.isCompleted,
-  });
-}
-
-/// Static sample tasks for display
-final _staticTasks = [
-  const _StaticTask(
-    title: 'Review project proposal',
-    description: 'Read through the Q3 project proposal and provide feedback',
-    isCompleted: false,
-  ),
-  const _StaticTask(
-    title: 'Team standup meeting',
-    description: 'Daily sync with the development team',
-    isCompleted: true,
-  ),
-  const _StaticTask(
-    title: 'Update documentation',
-    description: 'Add API documentation for new endpoints',
-    isCompleted: false,
-  ),
-  const _StaticTask(
-    title: 'Code review - PR #142',
-    description: 'Review and approve the authentication module changes',
-    isCompleted: false,
-  ),
-  const _StaticTask(
-    title: 'Deploy staging build',
-    description: 'Deploy latest changes to staging environment',
-    isCompleted: true,
-  ),
-];
-
-/// Main home screen displaying the task list with static data
+/// Main home screen displaying the task list
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Static stats
-    const totalTasks = 5;
-    const activeTasks = 3;
-    const completedTasks = 2;
+    final controller = Get.find<TaskController>();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Task Manager'),
         actions: [
-          // Filter menu (static, no functionality)
-          PopupMenuButton<String>(
+          // Refresh button
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh tasks',
+            onPressed: () => controller.loadTasks(isFromReload: true),
+          ),
+
+          // Filter menu
+          PopupMenuButton<TaskFilter>(
             icon: const Icon(Icons.filter_list),
             tooltip: 'Filter tasks',
-            onSelected: (_) {}, // No-op
+            onSelected: (filter) => controller.setFilter(filter),
             itemBuilder: (context) => [
               const PopupMenuItem(
-                value: 'all',
+                value: TaskFilter.all,
                 child: Text('All Tasks'),
               ),
               const PopupMenuItem(
-                value: 'active',
+                value: TaskFilter.active,
                 child: Text('Active'),
               ),
               const PopupMenuItem(
-                value: 'completed',
+                value: TaskFilter.completed,
                 child: Text('Completed'),
               ),
             ],
@@ -84,27 +48,28 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Static stats header
-          _buildStatsHeader(context, totalTasks, activeTasks, completedTasks),
+          // Stats header
+          Obx(() => _buildStatsHeader(context, controller)),
 
           const Divider(height: 1),
 
-          // Static task list
-          Expanded(child: _buildTaskList(context)),
+          // Task list
+          Expanded(child: Obx(() => _buildTaskList(context, controller))),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Add task',
-        onPressed: () {
-          // Show the add task dialog
-          showAddTaskDialog(context);
-        },
+        onPressed: () => showAddTaskDialog(context),
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildStatsHeader(BuildContext context, int total, int active, int done) {
+  Widget _buildStatsHeader(BuildContext context, TaskController controller) {
+    if (controller.isLoading.value) {
+      return _buildStatsLoadingSkeleton();
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -113,17 +78,17 @@ class HomeScreen extends StatelessWidget {
         children: [
           _StatItem(
             label: 'Total',
-            value: total.toString(),
+            value: controller.totalTasks.toString(),
             icon: Icons.task,
           ),
           _StatItem(
             label: 'Active',
-            value: active.toString(),
+            value: controller.activeTasks.toString(),
             icon: Icons.radio_button_unchecked,
           ),
           _StatItem(
             label: 'Done',
-            value: done.toString(),
+            value: controller.completedTasks.toString(),
             icon: Icons.check_circle,
           ),
         ],
@@ -131,14 +96,162 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTaskList(BuildContext context) {
-    // Static task list
+  Widget _buildTaskList(BuildContext context, TaskController controller) {
+    // Loading state
+    if (controller.isLoading.value) {
+      return _buildLoadingSkeleton();
+    }
+
+    // Error state
+    if (controller.error.value.isNotEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(controller.error.value, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => controller.loadTasks(),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Empty state
+    final tasks = controller.filteredTasks;
+    if (tasks.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              controller.currentFilter.value == TaskFilter.completed
+                  ? Icons.check_circle_outline
+                  : Icons.task_alt,
+              size: 64,
+              color: Colors.grey,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _getEmptyMessage(controller.currentFilter.value),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Task list
     return ListView.builder(
-      itemCount: _staticTasks.length,
+      itemCount: tasks.length,
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemBuilder: (context, index) {
-        final task = _staticTasks[index];
-        return _TaskTile(task: task);
+        final task = tasks[index];
+        return _TaskTile(
+          task: task,
+          onDelete: () => controller.deleteTask(task.id),
+          onToggle: () => controller.toggleTask(task),
+          onTap: () => controller.navigateToTaskDetails(task),
+        );
+      },
+    );
+  }
+
+  /// Build loading skeleton for stats header
+  Widget _buildStatsLoadingSkeleton() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        color: Colors.grey[100],
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(3, (index) {
+            return const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(radius: 10),
+                SizedBox(height: 4),
+                SizedBox(
+                  width: 24,
+                  height: 20,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(color: Colors.white),
+                  ),
+                ),
+                SizedBox(height: 4),
+                SizedBox(
+                  width: 40,
+                  height: 12,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  String _getEmptyMessage(TaskFilter filter) {
+    switch (filter) {
+      case TaskFilter.all:
+        return 'No tasks yet. Tap + to add one!';
+      case TaskFilter.active:
+        return 'No active tasks';
+      case TaskFilter.completed:
+        return 'No completed tasks yet';
+    }
+  }
+
+  /// Build loading skeleton with shimmer effect
+  Widget _buildLoadingSkeleton() {
+    return ListView.builder(
+      itemCount: 6,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemBuilder: (context, index) {
+        return Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Card(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: ListTile(
+              leading: const CircleAvatar(),
+              title: Container(
+                height: 16,
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              subtitle: Container(
+                height: 12,
+                width: MediaQuery.of(context).size.width * 0.6,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              trailing: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+          ),
+        );
       },
     );
   }
@@ -185,97 +298,131 @@ class _StatItem extends StatelessWidget {
 
 /// Individual task tile widget
 class _TaskTile extends StatelessWidget {
-  final _StaticTask task;
+  final TaskEntity task;
+  final VoidCallback onDelete;
+  final VoidCallback onToggle;
+  final VoidCallback onTap;
 
   const _TaskTile({
     required this.task,
+    required this.onDelete,
+    required this.onToggle,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: InkWell(
-        onTap: () {
-          // Navigate to task details screen
-          Get.toNamed(Routes.taskDetails);
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Row(
-            children: [
-              // Static checkbox icon
-              IconButton(
-                icon: Icon(
-                  task.isCompleted
-                      ? Icons.check_circle
-                      : Icons.radio_button_unchecked,
-                  color: task.isCompleted ? Colors.green : Colors.grey,
+    return Dismissible(
+      key: Key(task.id.toString()),
+      direction: DismissDirection.endToStart,
+      onDismissed: (_) => onDelete(),
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 16),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: InkWell(
+          // Navigate to details on tap (excluding checkbox and delete button)
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              children: [
+                // Checkbox with confirmation dialog
+                IconButton(
+                  icon: Icon(
+                    task.isCompleted
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color: task.isCompleted ? Colors.green : Colors.grey,
+                  ),
+                  tooltip: task.isCompleted
+                      ? 'Mark as active'
+                      : 'Mark as completed',
+                  onPressed: () => _showToggleDialog(context),
                 ),
-                tooltip: task.isCompleted
-                    ? 'Completed'
-                    : 'Active',
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Toggle - Static demo mode')),
-                  );
-                },
-              ),
 
-              // Task content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      task.title,
-                      style: TextStyle(
-                        decoration: task.isCompleted
-                            ? TextDecoration.lineThrough
-                            : null,
-                        color: task.isCompleted
-                            ? Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withValues(alpha: 0.6)
-                            : null,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (task.description.isNotEmpty)
+                // Task content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        task.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        task.title,
                         style: TextStyle(
+                          decoration: task.isCompleted
+                              ? TextDecoration.lineThrough
+                              : null,
                           color: task.isCompleted
                               ? Theme.of(
                                   context,
                                 ).colorScheme.onSurface.withValues(alpha: 0.6)
-                              : Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                          fontSize: 12,
+                              : null,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                  ],
+                      if (task.description.isNotEmpty)
+                        Text(
+                          task.description,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: task.isCompleted
+                                ? Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withValues(alpha: 0.6)
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                            fontSize: 12,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
 
-              // Delete button
-              IconButton(
-                icon: const Icon(Icons.delete_outline),
-                tooltip: 'Delete',
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Delete - Static demo mode')),
-                  );
-                },
-              ),
-            ],
+                // Delete button
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: 'Delete',
+                  onPressed: onDelete,
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  void _showToggleDialog(BuildContext context) {
+    final isCompleting = !task.isCompleted;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isCompleting ? 'Mark as Completed?' : 'Mark as Active?'),
+        content: Text(
+          isCompleting
+              ? 'Are you sure you want to mark "${task.title}" as completed?'
+              : 'Are you sure you want to mark "${task.title}" as active?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              onToggle();
+            },
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
 }
- 
