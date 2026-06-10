@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:ibf_task_manager/controllers/task_controller.dart';
 
@@ -26,7 +27,7 @@ void showAddTaskDialog(BuildContext context) {
               ),
               textInputAction: TextInputAction.next,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             TextField(
               controller: descriptionController,
               decoration: const InputDecoration(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import '../controllers/task_controller.dart';
@@ -51,7 +52,7 @@ class HomeScreen extends StatelessWidget {
           // Stats header
           Obx(() => _buildStatsHeader(context, controller)),
 
-          const Divider(height: 1),
+          Divider(height: 1.h),
 
           // Task list
           Expanded(child: Obx(() => _buildTaskList(context, controller))),
@@ -71,7 +72,7 @@ class HomeScreen extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.w),
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -108,10 +109,10 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
+            Icon(Icons.error_outline, size: 48.r, color: Colors.red),
+            SizedBox(height: 16.h),
             Text(controller.error.value, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             ElevatedButton(
               onPressed: () => controller.loadTasks(),
               child: const Text('Retry'),
@@ -132,10 +133,10 @@ class HomeScreen extends StatelessWidget {
               controller.currentFilter.value == TaskFilter.completed
                   ? Icons.check_circle_outline
                   : Icons.task_alt,
-              size: 64,
+              size: 64.r,
               color: Colors.grey,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             Text(
               _getEmptyMessage(controller.currentFilter.value),
               style: Theme.of(context).textTheme.titleMedium,
@@ -148,7 +149,7 @@ class HomeScreen extends StatelessWidget {
     // Task list
     return ListView.builder(
       itemCount: tasks.length,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: 8.h),
       itemBuilder: (context, index) {
         final task = tasks[index];
         return _TaskTile(
@@ -167,27 +168,27 @@ class HomeScreen extends StatelessWidget {
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.w),
         color: Colors.grey[100],
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: List.generate(3, (index) {
-            return const Column(
+            return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircleAvatar(radius: 10),
-                SizedBox(height: 4),
+                CircleAvatar(radius: 10.r),
+                SizedBox(height: 4.h),
                 SizedBox(
-                  width: 24,
-                  height: 20,
+                  width: 24.w,
+                  height: 20.h,
                   child: DecoratedBox(
                     decoration: BoxDecoration(color: Colors.white),
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 SizedBox(
-                  width: 40,
-                  height: 12,
+                  width: 40.w,
+                  height: 12.h,
                   child: DecoratedBox(
                     decoration: BoxDecoration(color: Colors.white),
                   ),
@@ -215,13 +216,13 @@ class HomeScreen extends StatelessWidget {
   Widget _buildLoadingSkeleton() {
     return ListView.builder(
       itemCount: 6,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: 8.h),
       itemBuilder: (context, index) {
         return Shimmer.fromColors(
           baseColor: Colors.grey[300]!,
           highlightColor: Colors.grey[100]!,
           child: Card(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
             child: ListTile(
               leading: const CircleAvatar(),
               title: Container(
@@ -242,8 +243,8 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               trailing: Container(
-                width: 48,
-                height: 48,
+                width: 48.w,
+                height: 48.h,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(4),
@@ -275,7 +276,7 @@ class _StatItem extends StatelessWidget {
       children: [
         Icon(
           icon,
-          size: 20,
+          size: 20.r,
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
         const SizedBox(height: 4),
@@ -319,16 +320,16 @@ class _TaskTile extends StatelessWidget {
       background: Container(
         color: Colors.red,
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 16),
+        padding: EdgeInsets.only(right: 16.w),
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
         child: InkWell(
           // Navigate to details on tap (excluding checkbox and delete button)
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
             child: Row(
               children: [
                 // Checkbox with confirmation dialog
@@ -377,7 +378,7 @@ class _TaskTile extends StatelessWidget {
                                 : Theme.of(
                                     context,
                                   ).colorScheme.onSurfaceVariant,
-                            fontSize: 12,
+                            fontSize: 12.sp,
                           ),
                         ),
                     ],

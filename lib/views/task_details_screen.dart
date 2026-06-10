@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:ibf_task_manager/controllers/task_controller.dart';
 import 'package:ibf_task_manager/domain/entities/task.dart';
@@ -45,22 +46,22 @@ class TaskDetailsScreen extends StatelessWidget {
         }
 
         return ListView(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16.w),
           children: [
             // Status card
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16.w),
                 child: Row(
                   children: [
                     Icon(
                       task.isCompleted
                           ? Icons.check_circle
                           : Icons.radio_button_unchecked,
-                      size: 32,
+                      size: 32.r,
                       color: task.isCompleted ? Colors.green : Colors.orange,
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16.w),
                     Text(
                       task.isCompleted ? 'Completed' : 'Active',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -73,12 +74,12 @@ class TaskDetailsScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
 
             // Title section
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -88,7 +89,7 @@ class TaskDetailsScreen extends StatelessWidget {
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     Text(
                       task.title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -100,12 +101,12 @@ class TaskDetailsScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
 
             // Description section
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -123,7 +124,7 @@ class TaskDetailsScreen extends StatelessWidget {
                         ),
                         if (task.description.isNotEmpty)
                           IconButton(
-                            icon: const Icon(Icons.copy, size: 18),
+                            icon: Icon(Icons.copy, size: 18.r),
                             tooltip: 'Copy description',
                             onPressed: () =>
                                 _copyDescription(context, task.description),
@@ -133,7 +134,7 @@ class TaskDetailsScreen extends StatelessWidget {
                           ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     Text(
                       task.description.isNotEmpty
                           ? task.description
@@ -145,12 +146,12 @@ class TaskDetailsScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
 
             // Metadata section
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -160,24 +161,24 @@ class TaskDetailsScreen extends StatelessWidget {
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12.h),
                     _DetailRow(
                       label: 'Created',
                       value: _formatDate(task.createdAt),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     _DetailRow(
                       label: 'Last Updated',
                       value: _formatDate(task.updatedAt),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     _DetailRow(label: 'Task ID', value: '#${task.id}'),
                   ],
                 ),
               ),
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
 
             // Toggle status button
             FilledButton.icon(
@@ -191,7 +192,7 @@ class TaskDetailsScreen extends StatelessWidget {
                 task.isCompleted ? 'Mark as Active' : 'Mark as Completed',
               ),
               style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
+                minimumSize: Size.fromHeight(48.h),
                 backgroundColor: task.isCompleted
                     ? Colors.orange
                     : Colors.green,
@@ -244,7 +245,7 @@ class TaskDetailsScreen extends StatelessWidget {
               ),
               textInputAction: TextInputAction.next,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             TextField(
               controller: descriptionController,
               decoration: const InputDecoration(

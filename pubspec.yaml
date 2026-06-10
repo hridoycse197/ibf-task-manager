@@ -48,7 +48,9 @@ dependencies:
   path_provider:
   # Date formatting
   intl:
-  shimmer: ^3.0.0
+  shimmer:
+  # Responsive design
+  flutter_screenutil: ^5.9.0
 
 dev_dependencies:
   flutter_test:
