@@ -1,5 +1,7 @@
+import 'package:dartz/dartz.dart';
 import '../entities/task.dart';
 import '../repositories/task_repository.dart';
+import '../../core/error/failures.dart';
 
 /// Use case for toggling task completion status
 class ToggleTaskUseCase {
@@ -8,13 +10,13 @@ class ToggleTaskUseCase {
   ToggleTaskUseCase(this._repository);
 
   /// Execute the use case
-  /// Returns the updated task with toggled status
-  Future<TaskEntity> call(TaskEntity task) async {
-    // Business rule: Task must exist
+  /// Returns Either a Failure or the updated task with toggled status
+  Future<Either<Failure, TaskEntity>> call(TaskEntity task) async {
+    // Business rule: Task must have a valid ID
     if (task.id <= 0) {
-      throw ArgumentError('Invalid task ID');
+      return Left(ValidationFailure.invalidInput('Invalid task ID'));
     }
 
-    return _repository.toggleTask(task);
+    return await _repository.toggleTask(task);
   }
 }
