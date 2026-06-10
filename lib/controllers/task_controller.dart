@@ -31,12 +31,12 @@ class TaskController extends GetxController {
     required ToggleTaskUseCase toggleTaskUseCase,
     required UpdateTaskUseCase updateTaskUseCase,
     required SeedDataIfNeededUseCase seedDataUseCase,
-  })  : _getTasksUseCase = getTasksUseCase,
-        _addTaskUseCase = addTaskUseCase,
-        _deleteTaskUseCase = deleteTaskUseCase,
-        _toggleTaskUseCase = toggleTaskUseCase,
-        _updateTaskUseCase = updateTaskUseCase,
-        _seedDataUseCase = seedDataUseCase;
+  }) : _getTasksUseCase = getTasksUseCase,
+       _addTaskUseCase = addTaskUseCase,
+       _deleteTaskUseCase = deleteTaskUseCase,
+       _toggleTaskUseCase = toggleTaskUseCase,
+       _updateTaskUseCase = updateTaskUseCase,
+       _seedDataUseCase = seedDataUseCase;
 
   // Observable state
   final tasks = <TaskEntity>[].obs;
@@ -65,18 +65,15 @@ class TaskController extends GetxController {
       // Use use case instead of repository
       final result = await _getTasksUseCase();
 
-      result.fold(
-        (failure) => error.value = _getErrorMessage(failure),
-        (data) {
-          tasks.assignAll(data);
-          _applyFilter();
+      result.fold((failure) => error.value = _getErrorMessage(failure), (data) {
+        tasks.assignAll(data);
+        _applyFilter();
 
-          // If local storage is empty, fetch from API
-          if (data.isEmpty) {
-            seedDataIfNeeded(manageLoading: false);
-          }
-        },
-      );
+        // If local storage is empty, fetch from API
+        if (data.isEmpty) {
+          seedDataIfNeeded(manageLoading: false);
+        }
+      });
     } catch (e) {
       error.value = 'Unexpected error: $e';
     } finally {
@@ -98,18 +95,16 @@ class TaskController extends GetxController {
     try {
       final result = await _getTasksUseCase();
 
-      result.fold(
-        (failure) => error.value = _getErrorMessage(failure),
-        (data) {
-          tasks.assignAll(data);
-          _applyFilter();
+      result.fold((failure) => error.value = _getErrorMessage(failure), (data) {
+        tasks.assignAll(data);
+        _applyFilter();
 
-          // If local storage is empty, seed from API
-          if (data.isEmpty && isFromReload) {
-            seedDataIfNeeded(manageLoading: false);
-          }
-        },
-      );
+        // If local storage is empty, seed from API
+        // This happens on initial load AND on reload if data is empty
+        if (data.isEmpty && isFromReload) {
+          seedDataIfNeeded(manageLoading: manageLoading);
+        }
+      });
     } catch (e) {
       error.value = 'Unexpected error: $e';
     } finally {
@@ -129,15 +124,14 @@ class TaskController extends GetxController {
     try {
       final result = await _seedDataUseCase();
 
-      result.fold(
-        (failure) => error.value = _getErrorMessage(failure),
-        (wasSeeded) {
-          if (wasSeeded) {
-            // Load tasks after seeding (loading already managed)
-            loadTasks(manageLoading: false);
-          }
-        },
-      );
+      result.fold((failure) => error.value = _getErrorMessage(failure), (
+        wasSeeded,
+      ) {
+        if (wasSeeded) {
+          // Load tasks after seeding (loading already managed)
+          loadTasks(manageLoading: false);
+        }
+      });
     } catch (e) {
       error.value = 'Unexpected error: $e';
     } finally {
@@ -170,13 +164,10 @@ class TaskController extends GetxController {
 
       final result = await _addTaskUseCase(task);
 
-      result.fold(
-        (failure) => error.value = _getErrorMessage(failure),
-        (id) {
-          // Task added successfully, reload the list
-          loadTasks();
-        },
-      );
+      result.fold((failure) => error.value = _getErrorMessage(failure), (id) {
+        // Task added successfully, reload the list
+        loadTasks();
+      });
     } catch (e) {
       error.value = 'Unexpected error: $e';
     } finally {
@@ -192,16 +183,15 @@ class TaskController extends GetxController {
 
       final result = await _deleteTaskUseCase(id);
 
-      result.fold(
-        (failure) => error.value = _getErrorMessage(failure),
-        (success) {
-          if (success) {
-            loadTasks();
-          } else {
-            error.value = 'Failed to delete task';
-          }
-        },
-      );
+      result.fold((failure) => error.value = _getErrorMessage(failure), (
+        success,
+      ) {
+        if (success) {
+          loadTasks();
+        } else {
+          error.value = 'Failed to delete task';
+        }
+      });
     } catch (e) {
       error.value = 'Unexpected error: $e';
     } finally {
@@ -217,30 +207,29 @@ class TaskController extends GetxController {
 
       final result = await _updateTaskUseCase(task);
 
-      result.fold(
-        (failure) => error.value = _getErrorMessage(failure),
-        (success) {
-          if (success) {
-            // Update the task in the list
-            final updatedTasks = tasks.map((t) {
-              if (t.id == task.id) {
-                return task;
-              }
-              return t;
-            }).toList();
-
-            tasks.assignAll(updatedTasks);
-            _applyFilter();
-
-            // Also update selectedTask if it's the same task
-            if (selectedTask.value?.id == task.id) {
-              selectedTask.value = task;
+      result.fold((failure) => error.value = _getErrorMessage(failure), (
+        success,
+      ) {
+        if (success) {
+          // Update the task in the list
+          final updatedTasks = tasks.map((t) {
+            if (t.id == task.id) {
+              return task;
             }
-          } else {
-            error.value = 'Failed to update task';
+            return t;
+          }).toList();
+
+          tasks.assignAll(updatedTasks);
+          _applyFilter();
+
+          // Also update selectedTask if it's the same task
+          if (selectedTask.value?.id == task.id) {
+            selectedTask.value = task;
           }
-        },
-      );
+        } else {
+          error.value = 'Failed to update task';
+        }
+      });
     } catch (e) {
       error.value = 'Unexpected error: $e';
     } finally {

@@ -388,7 +388,7 @@ class _TaskTile extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   tooltip: 'Delete',
-                  onPressed: onDelete,
+                  onPressed: () => _showDeleteDialog(context),
                 ),
               ],
             ),
@@ -420,6 +420,34 @@ class _TaskTile extends StatelessWidget {
               onToggle();
             },
             child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Task?'),
+        content: Text(
+          'Are you sure you want to delete "${task.title}"?\n\nThis action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              onDelete();
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Delete'),
           ),
         ],
       ),
