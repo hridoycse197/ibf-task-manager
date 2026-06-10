@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:ibf_task_manager/routes/pages.dart';
 import '../domain/entities/task.dart';
 import '../domain/usecases/add_task.dart';
 import '../domain/usecases/delete_task.dart';
@@ -260,7 +261,7 @@ class TaskController extends GetxController {
   /// Navigate to task details screen with selected task
   void navigateToTaskDetails(TaskEntity task) {
     selectedTask.value = task;
-    Get.toNamed('/task-details');
+    Get.toNamed(Routes.taskDetails);
   }
 
   /// Clear selected task (call when navigating back from details)

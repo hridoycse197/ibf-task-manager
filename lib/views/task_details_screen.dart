@@ -1,42 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:ibf_task_manager/controllers/task_controller.dart';
+import 'package:ibf_task_manager/domain/entities/task.dart';
 
-/// Simple static task model for display
-class _StaticTask {
-  final String id;
-  final String title;
-  final String description;
-  final bool isCompleted;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
-  const _StaticTask({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.isCompleted,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-}
-
-/// Static task data for demo
-final _staticTask = _StaticTask(
-  id: '1',
-  title: 'Complete Flutter Project',
-  description: 'Build a task manager application with clean architecture using Flutter, GetX for state management, and implement all the core features including task CRUD operations.',
-  isCompleted: false,
-  createdAt: DateTime(2026, 6, 10, 9, 30),
-  updatedAt: DateTime(2026, 6, 10, 14, 45),
-);
-
-/// Static screen for displaying task details
 class TaskDetailsScreen extends StatelessWidget {
   const TaskDetailsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final task = _staticTask;
+    final controller = Get.find<TaskController>();
+    final task = controller.selectedTask.value!;
 
     return Scaffold(
       appBar: AppBar(
@@ -45,7 +19,7 @@ class TaskDetailsScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.delete),
             tooltip: 'Delete task',
-            onPressed: () => _showDeleteDialog(context, task),
+            onPressed: () => _showDeleteDialog(context, task, controller),
           ),
         ],
       ),
@@ -183,7 +157,7 @@ class TaskDetailsScreen extends StatelessWidget {
 
           // Toggle status button
           FilledButton.icon(
-            onPressed: () => _showToggleDialog(context, task),
+            onPressed: () => _showToggleDialog(context, task, controller),
             icon: Icon(
               task.isCompleted
                   ? Icons.radio_button_unchecked
@@ -221,7 +195,8 @@ class TaskDetailsScreen extends StatelessWidget {
 
   void _showToggleDialog(
     BuildContext context,
-    _StaticTask task,
+    TaskEntity task,
+    TaskController controller,
   ) {
     final isCompleting = !task.isCompleted;
     showDialog(
@@ -241,18 +216,9 @@ class TaskDetailsScreen extends StatelessWidget {
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop();
-              // Show a snackbar for demo purposes
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(isCompleting
-                        ? 'Task marked as completed (demo)'
-                        : 'Task marked as active (demo)'),
-                    behavior: SnackBarBehavior.floating,
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              }
+              controller.toggleTask(task);
+              // Pop the details screen after toggling
+              Navigator.of(context).pop();
             },
             child: const Text('Confirm'),
           ),
@@ -263,7 +229,8 @@ class TaskDetailsScreen extends StatelessWidget {
 
   void _showDeleteDialog(
     BuildContext context,
-    _StaticTask task,
+    TaskEntity task,
+    TaskController controller,
   ) {
     showDialog(
       context: context,
@@ -278,18 +245,9 @@ class TaskDetailsScreen extends StatelessWidget {
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop();
-              // Show a snackbar for demo purposes
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Task deleted (demo)'),
-                    behavior: SnackBarBehavior.floating,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-                // Pop the details screen after deleting
-                Navigator.of(context).pop();
-              }
+              controller.deleteTask(task.id);
+              // Pop the details screen after deleting
+              Navigator.of(context).pop();
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Delete'),
