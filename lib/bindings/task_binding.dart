@@ -9,6 +9,7 @@ import '../../domain/usecases/delete_task.dart';
 import '../../domain/usecases/get_tasks.dart';
 import '../../domain/usecases/seed_data_if_needed.dart';
 import '../../domain/usecases/toggle_task.dart';
+import '../../domain/usecases/update_task.dart';
 import '../controllers/task_controller.dart';
 
 class TaskBinding extends Bindings {
@@ -42,12 +43,14 @@ class TaskBinding extends Bindings {
     final addTaskUseCase = AddTaskUseCase(taskRepositoryImpl);
     final deleteTaskUseCase = DeleteTaskUseCase(taskRepositoryImpl);
     final toggleTaskUseCase = ToggleTaskUseCase(taskRepositoryImpl);
+    final updateTaskUseCase = UpdateTaskUseCase(taskRepositoryImpl);
     final seedDataUseCase = SeedDataIfNeededUseCase(taskRepositoryImpl);
 
     Get.put(getTasksUseCase, permanent: true);
     Get.put(addTaskUseCase, permanent: true);
     Get.put(deleteTaskUseCase, permanent: true);
     Get.put(toggleTaskUseCase, permanent: true);
+    Get.put(updateTaskUseCase, permanent: true);
     Get.put(seedDataUseCase, permanent: true);
 
     // ==================== PRESENTATION LAYER ====================
@@ -58,6 +61,7 @@ class TaskBinding extends Bindings {
       addTaskUseCase: addTaskUseCase,
       deleteTaskUseCase: deleteTaskUseCase,
       toggleTaskUseCase: toggleTaskUseCase,
+      updateTaskUseCase: updateTaskUseCase,
       seedDataUseCase: seedDataUseCase,
     );
 

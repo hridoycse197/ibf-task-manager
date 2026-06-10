@@ -17,14 +17,21 @@ class TaskMapper {
 
   /// Convert TaskEntity to TaskModel
   static TaskModel toModel(TaskEntity entity) {
-    return TaskModel(
+    final model = TaskModel(
       title: entity.title,
       description: entity.description,
       isCompleted: entity.isCompleted,
     )
-      ..id = entity.id
       ..createdAt = entity.createdAt
       ..updatedAt = entity.updatedAt;
+
+    // Only set ID if it's a positive number (existing task)
+    // For new tasks (id == 0), let Isar auto-assign the ID
+    if (entity.id > 0) {
+      model.id = entity.id;
+    }
+
+    return model;
   }
 
   /// Convert list of TaskModel to list of TaskEntity

@@ -6,6 +6,7 @@ import '../domain/usecases/delete_task.dart';
 import '../domain/usecases/get_tasks.dart';
 import '../domain/usecases/seed_data_if_needed.dart';
 import '../domain/usecases/toggle_task.dart';
+import '../domain/usecases/update_task.dart';
 import '../core/error/failures.dart';
 
 /// Task filter options
@@ -20,6 +21,7 @@ class TaskController extends GetxController {
   final AddTaskUseCase _addTaskUseCase;
   final DeleteTaskUseCase _deleteTaskUseCase;
   final ToggleTaskUseCase _toggleTaskUseCase;
+  final UpdateTaskUseCase _updateTaskUseCase;
   final SeedDataIfNeededUseCase _seedDataUseCase;
 
   TaskController({
@@ -27,11 +29,13 @@ class TaskController extends GetxController {
     required AddTaskUseCase addTaskUseCase,
     required DeleteTaskUseCase deleteTaskUseCase,
     required ToggleTaskUseCase toggleTaskUseCase,
+    required UpdateTaskUseCase updateTaskUseCase,
     required SeedDataIfNeededUseCase seedDataUseCase,
   })  : _getTasksUseCase = getTasksUseCase,
         _addTaskUseCase = addTaskUseCase,
         _deleteTaskUseCase = deleteTaskUseCase,
         _toggleTaskUseCase = toggleTaskUseCase,
+        _updateTaskUseCase = updateTaskUseCase,
         _seedDataUseCase = seedDataUseCase;
 
   // Observable state
@@ -52,7 +56,7 @@ class TaskController extends GetxController {
     _initializeTasks();
   }
 
-  /// Initialize tasks - only load from local storage (no API call)
+  /// Initialize tasks - load from local storage and fetch from API if empty
   Future<void> _initializeTasks() async {
     try {
       isLoading.value = true;
@@ -66,6 +70,11 @@ class TaskController extends GetxController {
         (data) {
           tasks.assignAll(data);
           _applyFilter();
+
+          // If local storage is empty, fetch from API
+          if (data.isEmpty) {
+            seedDataIfNeeded(manageLoading: false);
+          }
         },
       );
     } catch (e) {
@@ -200,6 +209,45 @@ class TaskController extends GetxController {
     }
   }
 
+  /// Edit an existing task
+  Future<void> editTask(TaskEntity task) async {
+    try {
+      isLoading.value = true;
+      error.value = '';
+
+      final result = await _updateTaskUseCase(task);
+
+      result.fold(
+        (failure) => error.value = _getErrorMessage(failure),
+        (success) {
+          if (success) {
+            // Update the task in the list
+            final updatedTasks = tasks.map((t) {
+              if (t.id == task.id) {
+                return task;
+              }
+              return t;
+            }).toList();
+
+            tasks.assignAll(updatedTasks);
+            _applyFilter();
+
+            // Also update selectedTask if it's the same task
+            if (selectedTask.value?.id == task.id) {
+              selectedTask.value = task;
+            }
+          } else {
+            error.value = 'Failed to update task';
+          }
+        },
+      );
+    } catch (e) {
+      error.value = 'Unexpected error: $e';
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   /// Toggle task completion status
   Future<void> toggleTask(TaskEntity task) async {
     try {
@@ -260,7 +308,17 @@ class TaskController extends GetxController {
 
   /// Navigate to task details screen with selected task
   void navigateToTaskDetails(TaskEntity task) {
-    selectedTask.value = task;
+    // Find the task from the current list to ensure we have the correct ID from database
+    // This prevents issues with newly added tasks that might have temporary id: 0
+    final taskFromList = tasks.firstWhereOrNull((t) => t.id == task.id);
+
+    if (taskFromList != null) {
+      selectedTask.value = taskFromList;
+    } else {
+      // Fallback to the passed task if not found in list
+      selectedTask.value = task;
+    }
+
     Get.toNamed(Routes.taskDetails);
   }
 

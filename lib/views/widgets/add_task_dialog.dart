@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:ibf_task_manager/controllers/task_controller.dart';
 
-/// Shows a static add task dialog (demo mode)
 void showAddTaskDialog(BuildContext context) {
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
+  final controller = Get.find<TaskController>();
 
   showDialog(
     context: context,
@@ -36,6 +38,7 @@ void showAddTaskDialog(BuildContext context) {
               textInputAction: TextInputAction.done,
               onSubmitted: (_) => _handleSubmit(
                 context,
+                controller,
                 titleController,
                 descriptionController,
               ),
@@ -51,6 +54,7 @@ void showAddTaskDialog(BuildContext context) {
         FilledButton(
           onPressed: () => _handleSubmit(
             context,
+            controller,
             titleController,
             descriptionController,
           ),
@@ -63,6 +67,7 @@ void showAddTaskDialog(BuildContext context) {
 
 void _handleSubmit(
   BuildContext context,
+  TaskController controller,
   TextEditingController titleController,
   TextEditingController descriptionController,
 ) {
@@ -80,16 +85,12 @@ void _handleSubmit(
   }
 
   Navigator.of(context).pop();
+  controller.addTask(title, description);
 
-  // Show demo message instead of actually adding task
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('Task added: $title (demo mode)'),
+    const SnackBar(
+      content: Text('Task added successfully'),
       behavior: SnackBarBehavior.floating,
-      duration: const Duration(seconds: 2),
     ),
   );
-
-  // Debug print to show what would have been added
-  debugPrint('Demo: Added task - Title: "$title", Description: "$description"');
 }
