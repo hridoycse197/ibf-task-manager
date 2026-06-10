@@ -11,7 +11,7 @@ import '../../domain/usecases/seed_data_if_needed.dart';
 import '../../domain/usecases/toggle_task.dart';
 import '../controllers/task_controller.dart';
 
-class CleanTaskBinding extends Bindings {
+class TaskBinding extends Bindings {
   @override
   void dependencies() {
     // ==================== INFRASTRUCTURE LAYER ====================
@@ -64,32 +64,3 @@ class CleanTaskBinding extends Bindings {
     Get.put(taskController, permanent: true);
   }
 }
-
-/*
-|--------------------------------------------------------------------------
-| DEPENDENCY FLOW DIAGRAM
-|--------------------------------------------------------------------------
-
-┌──────────────────────┐
-│   CleanTaskBinding    │
-│   (DI Container)      │
-└──────────┬───────────┘
-           │
-           ├─► DioClient (Infrastructure)
-           │
-           ├─► TaskApi (Data Source)
-           ├─► TaskLocal (Data Source)
-           │
-           ├─► TaskRepositoryImpl (Data)
-           │       │
-           │       └─► TaskRepository (Domain Interface)
-           │
-           ├─► GetTasksUseCase (Domain)
-           ├─► AddTaskUseCase (Domain)
-           ├─► DeleteTaskUseCase (Domain)
-           ├─► ToggleTaskUseCase (Domain)
-           └─► SeedDataUseCase (Domain)
-                   │
-                   └─► TaskController (Presentation)
-
-*/

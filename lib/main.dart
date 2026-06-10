@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:ibf_task_manager/bindings/task_binding.dart';
 import 'package:ibf_task_manager/core/storage/isar_service.dart';
 import 'package:ibf_task_manager/routes/pages.dart';
 
@@ -29,6 +30,7 @@ class TaskManagerApp extends StatelessWidget {
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
+      initialBinding: TaskBinding(),
       getPages: AppPages.routes,
     );
   }
