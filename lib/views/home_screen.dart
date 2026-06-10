@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../routes/pages.dart';
 
 /// Simple static task model for display
 class _StaticTask {
@@ -196,10 +198,8 @@ class _TaskTile extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: InkWell(
         onTap: () {
-          // Show a snackbar since this is static demo mode
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Tap on: ${task.title}')),
-          );
+          // Navigate to task details screen
+          Get.toNamed(Routes.taskDetails);
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

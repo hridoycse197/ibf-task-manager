@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:ibf_task_manager/routes/pages.dart';
 import 'package:ibf_task_manager/views/home_screen.dart';
 
 void main() async {
@@ -27,7 +28,7 @@ class TaskManagerApp extends StatelessWidget {
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
-      getPages: [GetPage(name: '/', page: () => const HomeScreen())],
+      getPages: AppPages.routes,
     );
   }
 }
