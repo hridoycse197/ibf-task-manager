@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../routes/pages.dart';
+import 'widgets/add_task_dialog.dart';
 
 /// Simple static task model for display
 class _StaticTask {
@@ -95,10 +96,8 @@ class HomeScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         tooltip: 'Add task',
         onPressed: () {
-          // Show a snackbar instead of adding a task
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Add task - Static demo mode')),
-          );
+          // Show the add task dialog
+          showAddTaskDialog(context);
         },
         child: const Icon(Icons.add),
       ),
